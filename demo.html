@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin: 0;
+        }
+
+        #instructions {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 20px;
+        }
+
+        #instructions p {
+            font-size: 18px;
+        }
+
+        #instructions strong {
+            color: #007BFF;
+        }
+
+        ul {
+            list-style-type: disc;
+        }
+
+        #question1,
+        #question2 {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 20px;
+            display: none;
+        }
+
+        #question1 h2,
+        #question2 h2 {
+            font-size: 24px;
+            color: #007BFF;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            font-size: 18px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:focus {
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>BVRIT HYDERABAD College of Engineering for Women</h1>
+    </header>
+
+    <div id="instructions">
+        <p>We're delighted to have you here for the online exam. This exam is designed to test your knowledge and skills in Social Studies. Please listen to the following instructions carefully before you begin:</p>
+        <p><strong>Exam Instructions:</strong></p>
+        <ul>
+            <li>Duration: You will have 30 minutes to complete the exam. The timer starts as soon as you begin.</li>
+            <li>Questions: There are a total of 2 questions in this exam. Make sure to attempt all of them.</li>
+            <li>Submit: When you have completed the exam, use "Submit" voice command.</li>
+            <li>Good Luck!</li>
+        </ul>
+    </div>
+    <button id="start-button">Start Exam</button>
+    <div id="question1">
+        <h2>Question 1</h2>
+        <p>What was the Rowlatt Act? Why was it imposed?</p>
+        <textarea id="answer1" rows="6" cols="50" placeholder="Transcribed text will appear here"></textarea><br>
+        <button id="recordButton1">Record</button>
+        <button id="submitButton1">Submit</button>
+    </div>
+    <div id="question2">
+        <h2>Question 2</h2>
+        <p>What is World War 2?</p>
+        <textarea id="answer2" rows="6" cols="50" placeholder="Transcribed text will appear here"></textarea><br>
+        <button id="recordButton2">Record</button>
+        <button id="submitButton2">Submit</button>
+    </div>
+
+    <script>
+        window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition;
+
+        if ('SpeechRecognition' in window) {
+            const recognition = new window.SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+
+            const transcriptionTextArea1 = document.getElementById('answer1');
+            const transcriptionTextArea2 = document.getElementById('answer2');
+            const startButton = document.getElementById('start-button');
+            const recordButton1 = document.getElementById('recordButton1');
+            const recordButton2 = document.getElementById('recordButton2');
+            const submitButton1 = document.getElementById('submitButton1');
+            const submitButton2 = document.getElementById('submitButton2');
+
+            function readInstructions() {
+                const instructionsText = document.getElementById('instructions').innerText;
+                const synthesis = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(instructionsText);
+                synthesis.speak(utterance);
+
+                utterance.onend = () => {
+                    document.getElementById('question1').style.display = 'block';
+                    readQuestion(1);
+                };
+            }
+
+            function readQuestion(questionNumber) {
+                const currentQuestion = document.getElementById(`question${questionNumber}`);
+                const questionText = currentQuestion.querySelector('p').innerText;
+                const synthesis = window.speechSynthesis;
+                const utterance = new SpeechSynthesisUtterance(questionText);
+                synthesis.speak(utterance);
+
+                utterance.onend = () => {
+                    if (questionNumber === 1) {
+                        recordButton1.disabled = false;
+                        submitButton1.disabled = false;
+                    } else if (questionNumber === 2) {
+                        recordButton2.disabled = false;
+                        submitButton2.disabled = false;
+                    }
+                };
+            }
+
+            function handleVoiceCommands(event) {
+                const speechToText = event.results[event.resultIndex][0].transcript.trim().toLowerCase();
+                console.log('Recognized speech:', speechToText);
+
+                if (speechToText.includes('start exam') || speechToText.includes('start')) {
+                    readInstructions();
+                } else if (speechToText.includes('record')) {
+                    if (document.getElementById('question1').style.display === 'block') {
+                        recordAnswer(1);
+                    } else if (document.getElementById('question2').style.display === 'block') {
+                        recordAnswer(2);
+                    }
+                } else if (speechToText.includes('submit')) {
+                    if (document.getElementById('question1').style.display === 'block') {
+                        submitAnswer(1);
+                    } else if (document.getElementById('question2').style.display === 'block') {
+                        submitAnswer(2);
+                    }
+                }
+            }
+
+            function recordAnswer(questionNumber) {
+                const currentTextArea = document.getElementById(`answer${questionNumber}`);
+                const recognition = new window.SpeechRecognition();
+
+                recognition.onresult = (event) => {
+                    const speechToText = event.results[0][0].transcript;
+                    currentTextArea.value += speechToText;
+                };
+
+                recognition.start();
+            }
+
+            function submitAnswer(questionNumber) {
+                const synthesis = window.speechSynthesis;
+                let utterance;
+
+                if (questionNumber === 1) {
+                    utterance = new SpeechSynthesisUtterance('Question 1 submitted. Here is the second question.');
+                    document.getElementById('question1').style.display = 'none';
+                    document.getElementById('question2').style.display = 'block';
+                    readQuestion(2);
+                } else if (questionNumber === 2) {
+                    utterance = new SpeechSynthesisUtterance('Question 2 submitted. You have completed the exam.');
+                }
+
+                synthesis.speak(utterance);
+            }
+
+            startButton.addEventListener('click', readInstructions);
+            recordButton1.addEventListener('click', () => recordAnswer(1));
+            recordButton2.addEventListener('click', () => recordAnswer(2));
+            submitButton1.addEventListener('click', () => submitAnswer(1));
+            submitButton2.addEventListener('click', () => submitAnswer(2));
+
+            recognition.onresult = handleVoiceCommands;
+            recognition.start();
+        } else {
+            alert('Speech recognition is not supported in your browser.');
+        }
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
